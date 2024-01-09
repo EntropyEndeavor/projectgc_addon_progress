@@ -8,7 +8,7 @@ class GpxParser:
 
     # Keep track of errors encountered while parsing the caches.
     # Each type of error is only recorded once. Cap at 20 errors total.
-    cacheParseErrors = {}
+    cacheParseErrors = set()
 
     def __init__(self, file):
         self.tree = ET.parse(file)
@@ -32,7 +32,13 @@ class GpxParser:
             try:
                 yield Geocache(wptNode, self.profileName, self._namespaces)
             except CacheParseException as e:
-                if len(cacheParseErrors) < 20:
-                    cacheParseErrors.add(str(e))
+                if len(self.cacheParseErrors) < 20:
+                    self.cacheParseErrors.add(str(e))
         
         
+myFindsFile = input("'My Finds' File Location: ")
+myFinds = GpxParser(myFindsFile)
+for cache in myFinds.iterate_caches():
+    pass
+
+

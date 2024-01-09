@@ -1,5 +1,6 @@
 from datetime import date
 import attributes
+import country_flag_unicode as countries
 
 knownTypes = {"Cache In Trash Out Event", "Community Celebration Event",
               "Earthcache", "Event Cache", "Groundspeak HQ",
@@ -24,12 +25,12 @@ class CacheParseException(Exception):
     pass
 
 class Geocache:
-    foundDates = set()
-    isFtf = False
-    attributes = set()
-    hostedEvent = False
-
     def __init__(self, wptNode, profileName, namespaces):
+        self.foundDates = set()
+        self.isFtf = False
+        self.attributes = set()
+        self.hostedEvent = False
+        
         self._set_gccode(wptNode, namespaces)
         self._set_name(wptNode, namespaces)
         self._set_type(wptNode, profileName, namespaces)
@@ -39,6 +40,7 @@ class Geocache:
         self._set_dates_found(wptNode, namespaces)
         self._set_date_hidden(wptNode, namespaces)
         self._set_ftf_status(wptNode, namespaces)
+        self._set_country(wptNode, namespaces)
 
     def _set_gccode(self, wptNode, namespaces):
         codeNode = wptNode.find("./TN:name", namespaces)
@@ -67,7 +69,7 @@ class Geocache:
                 raise CacheParseException("A Geocache doesn't have an owner.")
 
             if ownerNode.text == profileName:
-                hostedEvent = True
+                self.hostedEvent = True
 
     def _set_size(self, wptNode, namespaces):
         sizeNode = wptNode.find("./GN:cache/GN:container", namespaces)
@@ -117,6 +119,18 @@ class Geocache:
             except ValueError as e:
                 raise CacheParseException(str(e))
 
+        for foundDateNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Attended']/GN:date", namespaces):
+            try:
+                self.foundDates.add(date.fromisoformat(foundDateNode.text[:10]))
+            except ValueError as e:
+                raise CacheParseException(str(e))
+
+        for foundDateNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Webcam Photo Taken']/GN:date", namespaces):
+            try:
+                self.foundDates.add(date.fromisoformat(foundDateNode.text[:10]))
+            except ValueError as e:
+                raise CacheParseException(str(e))
+
         if len(self.foundDates) == 0:
             raise CacheParseException("A Geocache has no found logs.")
 
@@ -134,6 +148,23 @@ class Geocache:
         for foundLogNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Found it']/GN:text", namespaces):
             if "{*FTF*}" in foundLogNode.text or "{FTF}" in foundLogNode.text or "[FTF]" in foundLogNode.text:
                 self.isFtf = True
+
+        for foundLogNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Attended']/GN:text", namespaces):
+            if "{*FTF*}" in foundLogNode.text or "{FTF}" in foundLogNode.text or "[FTF]" in foundLogNode.text:
+                self.isFtf = True
+
+        for foundLogNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Webcam Photo Taken']/GN:text", namespaces):
+            if "{*FTF*}" in foundLogNode.text or "{FTF}" in foundLogNode.text or "[FTF]" in foundLogNode.text:
+                self.isFtf = True
+
+    def _set_country(self, wptNode, namespaces):
+        countryNode = wptNode.find("./GN:cache/GN:country", namespaces)
+        if countryNode is None:
+            raise CacheParseException("A Geocache doesn't have a country.")
+
+        self.country = countryNode.text
+        if self.country not in countries.flagsUnicode:
+            raise CacheParseException("A Geocache has an unrecognized country: " + self.country)
     
 
 
@@ -147,7 +178,7 @@ class Geocache:
         return attributes.BOAT in self.attributes and self.terrain == "5.0"
 
     def is_t5_climb(self):
-        return attributes.CLIMB in self.attrributes and self.terrain == "5.0"
+        return attributes.CLIMB in self.attributes and self.terrain == "5.0"
 
     def is_d5_field_puzzle(self):
         return attributes.FIELD_PUZZLE in self.attributes and self.difficulty == "5.0"
