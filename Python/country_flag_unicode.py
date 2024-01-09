@@ -1,4 +1,4 @@
-flag_unicode = {"Afghanistan": "&#x1F1E6;&#x1F1EB;",
+flagsUnicode = {"Afghanistan": "&#x1F1E6;&#x1F1EB;",
                 "Aland Islands": "&#x1F1E6;&#x1F1FD;",
                 "Albania": "&#x1F1E6;&#x1F1F1;",
                 "Algeria": "&#x1F1E9;&#x1F1FF;",
