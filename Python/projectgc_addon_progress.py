@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from geocache import Geocache, CacheParseException
+from result_aggregator import ResultAggregator
 
 class GpxParser:
     _namespaces = {'TN': "http://www.topografix.com/GPX/1/0",
@@ -38,7 +39,8 @@ class GpxParser:
         
 myFindsFile = input("'My Finds' File Location: ")
 myFinds = GpxParser(myFindsFile)
+results = ResultAggregator()
 for cache in myFinds.iterate_caches():
-    pass
+    results.update(cache)
 
 
