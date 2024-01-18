@@ -147,23 +147,53 @@ class Geocache:
 
     def _set_dates_found(self, wptNode, namespaces):
         # TDOD: How does Project-GC actually handle multiple found logs on cache?
-        for foundDateNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Found it']/GN:date", namespaces):
+        for foundNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Found it']", namespaces):
+            foundDateNode = foundNode.find("./GN:date", namespaces)
+            if foundDateNode is None:
+                raise CacheParseException("A Geocache does not have a found date.")
+            
             try:
-                self.foundDates.add(date.fromisoformat(foundDateNode.text[:10]))
+                foundDate = date.fromisoformat(foundDateNode.text[:10])
             except ValueError as e:
                 raise CacheParseException(str(e))
 
-        for foundDateNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Attended']/GN:date", namespaces):
+            lid = foundNode.get("id", None)
+            if lid is None:
+                raise CacheParseException("A Geocache does not have a log id.")
+
+            self.foundDates.add((foundDate, lid))
+
+        for foundNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Attended']", namespaces):
+            foundDateNode = foundNode.find("./GN:date", namespaces)
+            if foundDateNode is None:
+                raise CacheParseException("A Geocache does not have a found date.")
+            
             try:
-                self.foundDates.add(date.fromisoformat(foundDateNode.text[:10]))
+                foundDate = date.fromisoformat(foundDateNode.text[:10])
             except ValueError as e:
                 raise CacheParseException(str(e))
 
-        for foundDateNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Webcam Photo Taken']/GN:date", namespaces):
+            lid = foundNode.get("id", None)
+            if lid is None:
+                raise CacheParseException("A Geocache does not have a log id.")
+
+            self.foundDates.add((foundDate, lid))
+
+        for foundNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Webcam Photo Taken']", namespaces):
+            foundDateNode = foundNode.find("./GN:date", namespaces)
+            if foundDateNode is None:
+                raise CacheParseException("A Geocache does not have a found date.")
+            
             try:
-                self.foundDates.add(date.fromisoformat(foundDateNode.text[:10]))
+                foundDate = date.fromisoformat(foundDateNode.text[:10])
             except ValueError as e:
                 raise CacheParseException(str(e))
+
+            lid = foundNode.get("id", None)
+            if lid is None:
+                raise CacheParseException("A Geocache does not have a log id.")
+
+            self.foundDates.add((foundDate, lid))
 
         if len(self.foundDates) == 0:
             raise CacheParseException("A Geocache has no found logs.")
@@ -222,7 +252,7 @@ class Geocache:
         return attributes.FIELD_PUZZLE in self.attributes
 
     def has_leapday_find(self):
-        for date in self.foundDates:
+        for date, _ in self.foundDates:
             if date.month == 2 and date.day == 29:
                 return True
 

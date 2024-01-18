@@ -1,3 +1,7 @@
+import tempfile
+import webbrowser
+import time
+import os
 import xml.etree.ElementTree as ET
 from geocache import Geocache, CacheParseException
 from result_aggregator import ResultAggregator
@@ -37,10 +41,20 @@ class GpxParser:
                     self.cacheParseErrors.add(str(e))
         
         
-myFindsFile = input("'My Finds' File Location: ")
+#myFindsFile = input("'My Finds' File Location: ")
+myFindsFile = r"C:/Users/craig/Documents/Geocaching/My Finds - 20240106.gpx"
 myFinds = GpxParser(myFindsFile)
 results = ResultAggregator()
 for cache in myFinds.iterate_caches():
     results.update(cache)
 
+#with tempfile.NamedTemporaryFile('r+', suffix = '.html', delete=False) as f:
+with open(r"C:/Users/craig/Documents/Geocaching/testOutput.html", "wb") as f:
+    tree = results.create_html(False, myFinds.cacheParseErrors)
+    ET.indent(tree)
+    f.write(b"<!DOCTYPE html>\n")
+    tree.write(f, method="html")
+    f.flush()
+    os.fsync(f.fileno())
+webbrowser.open("file://" + os.path.realpath(f.name))
 
