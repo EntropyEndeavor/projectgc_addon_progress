@@ -419,7 +419,7 @@ class ResultAggregator:
             HTML.error_details(bodyNode, errors)
 
         if combineCalendar:
-            self._combined_calendar(bodyNode)
+            HTML.make_combined_calendar(bodyNode, self)
 
         achieverNode = HTML.badge_section(bodyNode, "The Achiever")
         self.achiever.create_html(achieverNode, HTML.iconAchiever, combineCalendar, True, True, True, True)
@@ -517,7 +517,5 @@ class ResultAggregator:
 
         return tree
 
-    def _combined_calendar(self, bodyNode):
-        pass
 
 

@@ -50,7 +50,7 @@ for cache in myFinds.iterate_caches():
 
 #with tempfile.NamedTemporaryFile('r+', suffix = '.html', delete=False) as f:
 with open(r"C:/Users/craig/Documents/Geocaching/testOutput.html", "wb") as f:
-    tree = results.create_html(False, myFinds.cacheParseErrors)
+    tree = results.create_html(True, myFinds.cacheParseErrors)
     ET.indent(tree)
     f.write(b"<!DOCTYPE html>\n")
     tree.write(f, method="html")
