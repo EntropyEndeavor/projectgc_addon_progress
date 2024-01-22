@@ -10,15 +10,22 @@ class GenericResults:
         self.dtGrid = {}
         self.ftf = False
 
-    def update(self, cache):
+    def update(self, cache, calForFtf = False):
         if cache.isFtf:
             self.ftf = True
 
-        for date, _ in cache.foundDates:
-            self.calendar.add((date.month, date.day))
+        firstFind = min(cache.foundDates)
+
+        if calForFtf:
+            # FTF Addict is the only badge that is log specific instead of cache specific.
+            # Assume FTF is the earliest dated found log since it obviously should be, and
+            # the FTF might be from a bookmark list and not associated with a log at all. 
+            self.calendar.add((firstFind[0].month, firstFind[0].day))
+        else:
+            for date, _ in cache.foundDates:
+                self.calendar.add((date.month, date.day))
 
         dt = (cache.difficulty, cache.terrain)
-        firstFind = min(cache.foundDates)
 
         if dt not in self.dtGrid or firstFind < self.dtGrid[dt][0]:
             self.dtGrid[dt] = (firstFind, cache.gcCode, cache.name, cache.type)
@@ -351,7 +358,7 @@ class ResultAggregator:
             self.eventHost.update(cache)
 
         if cache.isFtf:
-            self.ftfAddict.update(cache)
+            self.ftfAddict.update(cache, True)
 
         self.geocacher.update(cache)
     

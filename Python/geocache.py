@@ -58,7 +58,7 @@ class CacheParseException(Exception):
     pass
 
 class Geocache:
-    def __init__(self, wptNode, profileName, namespaces):
+    def __init__(self, wptNode, profileName, namespaces, ftfList):
         self.foundDates = set()
         self.isFtf = False
         self.attributes = set()
@@ -72,7 +72,7 @@ class Geocache:
         self._set_attributes(wptNode, namespaces)
         self._set_dates_found(wptNode, namespaces)
         self._set_date_hidden(wptNode, namespaces)
-        self._set_ftf_status(wptNode, namespaces)
+        self._set_ftf_status(wptNode, namespaces, ftfList)
         self._set_country(wptNode, namespaces)
 
     def _set_gccode(self, wptNode, namespaces):
@@ -208,18 +208,25 @@ class Geocache:
         except ValueError as e:
             raise CacheParseException(str(e))
 
-    def _set_ftf_status(self, wptNode, namespaces):
+    def _set_ftf_status(self, wptNode, namespaces, ftfList):
+        if self.gcCode in ftfList:
+            self.isFtf = True
+            return
+        
         for foundLogNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Found it']/GN:text", namespaces):
             if "{*FTF*}" in foundLogNode.text or "{FTF}" in foundLogNode.text or "[FTF]" in foundLogNode.text:
                 self.isFtf = True
+                return
 
         for foundLogNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Attended']/GN:text", namespaces):
             if "{*FTF*}" in foundLogNode.text or "{FTF}" in foundLogNode.text or "[FTF]" in foundLogNode.text:
                 self.isFtf = True
+                return
 
         for foundLogNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Webcam Photo Taken']/GN:text", namespaces):
             if "{*FTF*}" in foundLogNode.text or "{FTF}" in foundLogNode.text or "[FTF]" in foundLogNode.text:
                 self.isFtf = True
+                return
 
     def _set_country(self, wptNode, namespaces):
         countryNode = wptNode.find("./GN:cache/GN:country", namespaces)
