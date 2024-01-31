@@ -203,7 +203,7 @@ class GUI:
         try:
             if self.myFinds.endswith(".zip"):
                 z = zipfile.ZipFile(self.myFinds)
-                for f in ZipFile.namelist():
+                for f in z.namelist():
                     if f.endswith(".gpx"):
                         self.myFinds = z.open(f)
                         break

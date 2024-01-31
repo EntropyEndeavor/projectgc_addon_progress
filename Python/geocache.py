@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 import attributes
 import country_flag_unicode as countries
 
@@ -59,7 +59,7 @@ class CacheParseException(Exception):
 
 class Geocache:
     def __init__(self, wptNode, profileName, namespaces, ftfList):
-        self.foundDates = set()
+        self.foundDates = []
         self.isFtf = False
         self.attributes = set()
         self.hostedEvent = False
@@ -94,7 +94,7 @@ class Geocache:
 
         self.type = typeNode.text
         if self.type not in knownTypes:
-            raise CacheParseException("A geocache has an unrecognized type: " + self.type)
+            raise CacheParseException("A Geocache has an unrecognized type: " + self.type)
 
         if self.type in eventTypes:
             ownerNode = wptNode.find("./GN:cache/GN:owner", namespaces)
@@ -145,55 +145,32 @@ class Geocache:
 
             self.attributes.add(attribute)
 
+    def _set_dates_found_from_log(self, foundNode, namespaces):
+        foundDateNode = foundNode.find("./GN:date", namespaces)
+        if foundDateNode is None:
+            raise CacheParseException("A Geocache does not have a found date.")
+        
+        try:
+            foundDate = datetime.fromisoformat(foundDateNode.text).astimezone().date()
+        except ValueError as e:
+            raise CacheParseException(str(e))
+
+        lid = foundNode.get("id", None)
+        if lid is None:
+            raise CacheParseException("A Geocache does not have a log id.")
+
+        self.foundDates.append((foundDate, lid))
+
     def _set_dates_found(self, wptNode, namespaces):
-        # TDOD: How does Project-GC actually handle multiple found logs on cache?
+        # TDOD: How does Project-GC actually handle multiple found logs on a cache?
         for foundNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Found it']", namespaces):
-            foundDateNode = foundNode.find("./GN:date", namespaces)
-            if foundDateNode is None:
-                raise CacheParseException("A Geocache does not have a found date.")
-            
-            try:
-                foundDate = date.fromisoformat(foundDateNode.text[:10])
-            except ValueError as e:
-                raise CacheParseException(str(e))
-
-            lid = foundNode.get("id", None)
-            if lid is None:
-                raise CacheParseException("A Geocache does not have a log id.")
-
-            self.foundDates.add((foundDate, lid))
+            self._set_dates_found_from_log(foundNode, namespaces)
 
         for foundNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Attended']", namespaces):
-            foundDateNode = foundNode.find("./GN:date", namespaces)
-            if foundDateNode is None:
-                raise CacheParseException("A Geocache does not have a found date.")
-            
-            try:
-                foundDate = date.fromisoformat(foundDateNode.text[:10])
-            except ValueError as e:
-                raise CacheParseException(str(e))
-
-            lid = foundNode.get("id", None)
-            if lid is None:
-                raise CacheParseException("A Geocache does not have a log id.")
-
-            self.foundDates.add((foundDate, lid))
+            self._set_dates_found_from_log(foundNode, namespaces)
 
         for foundNode in wptNode.findall("./GN:cache/GN:logs/GN:log[GN:type='Webcam Photo Taken']", namespaces):
-            foundDateNode = foundNode.find("./GN:date", namespaces)
-            if foundDateNode is None:
-                raise CacheParseException("A Geocache does not have a found date.")
-            
-            try:
-                foundDate = date.fromisoformat(foundDateNode.text[:10])
-            except ValueError as e:
-                raise CacheParseException(str(e))
-
-            lid = foundNode.get("id", None)
-            if lid is None:
-                raise CacheParseException("A Geocache does not have a log id.")
-
-            self.foundDates.add((foundDate, lid))
+            self._set_dates_found_from_log(foundNode, namespaces)
 
         if len(self.foundDates) == 0:
             raise CacheParseException("A Geocache has no found logs.")
@@ -204,7 +181,7 @@ class Geocache:
             raise CacheParseException("A geocache doesn't have a hidden date.")
 
         try:
-            self.hiddenDate = date.fromisoformat(hiddenDateNode.text[:10])
+            self.hiddenYear = int(hiddenDateNode.text[:4])
         except ValueError as e:
             raise CacheParseException(str(e))
 
@@ -247,7 +224,7 @@ class Geocache:
         return attributes.CHALLENGE in self.attributes
 
     def is_old_virtual(self):
-        return "Virtual Cache" == self.type and self.hiddenDate.year <= 2005
+        return "Virtual Cache" == self.type and self.hiddenYear <= 2005
 
     def is_boat(self):
         return attributes.BOAT in self.attributes

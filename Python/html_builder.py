@@ -478,7 +478,11 @@ def make_combined_calendar(bodyNode, results):
     add_style(summaryNode, "font-size", "1.5em")
     summaryNode.text = "Combined Calendars"
 
-    ET.SubElement(detailsNode, "p").text = "Icons show what you still need for that day."
+    pNode = ET.SubElement(detailsNode, "p")
+    pNode.text = 'Icons show what you still need for that day. Please also check "'
+    bNode = ET.SubElement(pNode, "b")
+    bNode.text = "The Traveling Cacher"
+    bNode.tail = ' Badge" section to see if you need a find in another country for each day.'
 
     for monthName, monthNum, numDays in months:
         tableNode = ET.SubElement(detailsNode, "table", {"class": "combined"})
