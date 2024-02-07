@@ -423,7 +423,7 @@ class ResultAggregator:
         tree, bodyNode = HTML.create_document()
 
         if len(errors) != 0:
-            HTML.error_details(bodyNode, errors)
+            bodyNode.append(HTML.error_details(errors))
 
         if combineCalendar:
             HTML.make_combined_calendar(bodyNode, self)

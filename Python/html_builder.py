@@ -396,7 +396,7 @@ def _attribute_gallery(node, attributeSet):
     add_style(divNode, "display", "flex")
     add_style(divNode, "width", "60%")
     add_style(divNode, "flex-wrap", "wrap")
-    add_style(divNode, "algn-content", "flex-start")
+    add_style(divNode, "align-content", "flex-start")
 
     for ix in range(1, 73):
         for a in [ix, -ix]:
@@ -455,7 +455,7 @@ def traveling_single(sectionNode, status, addonName):
     pNode.append(symbolNode)
 
     if status == False:
-        symbolNode.tail = " You don't have any finds for the "
+        symbolNode.tail = " You do not have any qualifying finds for the "
     elif status == True:
         symbolNode.tail = " You have qualifying finds for the "
     else:
@@ -482,13 +482,13 @@ def make_combined_calendar(bodyNode, results):
     pNode.text = 'Icons show what you still need for that day. Please also check "'
     bNode = ET.SubElement(pNode, "b")
     bNode.text = "The Traveling Cacher"
-    bNode.tail = ' Badge" section to see if you need a find in another country for each day.'
+    bNode.tail = ' Badge" section to see if you also need a find in another country for each day.'
 
     for monthName, monthNum, numDays in months:
         tableNode = ET.SubElement(detailsNode, "table", {"class": "combined"})
         ET.SubElement(tableNode, "caption", {"style": "font-size: 1.25em;"}).text = monthName
 
-        for rowStart in range(1,31,7):
+        for rowStart in range(1,31+1,7):
             trNode = ET.SubElement(tableNode, "tr")
 
             for day in range(rowStart, rowStart + 7):

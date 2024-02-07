@@ -178,7 +178,7 @@ class Geocache:
     def _set_date_hidden(self, wptNode, namespaces):
         hiddenDateNode = wptNode.find("./TN:time", namespaces)
         if hiddenDateNode is None:
-            raise CacheParseException("A geocache doesn't have a hidden date.")
+            raise CacheParseException("A Geocache doesn't have a hidden date.")
 
         try:
             self.hiddenYear = int(hiddenDateNode.text[:4])
