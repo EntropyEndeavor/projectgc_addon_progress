@@ -2309,42 +2309,45 @@ function get_file_text(file) {
 
 
 async function compute_page() {
-  var combineCheckbox = document.getElementById("combine_calendars");
-  var myFindsBrowse = document.getElementById("my_finds");
-  var ftfBrowse = document.getElementById("ftf_list");
-  
-  if (myFindsBrowse.files.length === 0) {
-    alert("You must select a \"My Finds\" GPX file.");
-    return;
-  }
-  
-  var resultHolder = document.getElementById("result_holder");
-  resultHolder.innerHTML = "<br><br><b>Working... Please be patient!</b>";  
-  
-  //Add zip file processing.
-  var myFinds = myFindsBrowse.files[0];
-  
-  const myFindsText = await get_file_text(myFinds);
-  
   try {
-    var parser = new GpxParser(myFindsText);
-  } catch (e) {
-    alert("Fatal parsing error: " + e + ".");
+    var combineCheckbox = document.getElementById("combine_calendars");
+    var myFindsBrowse = document.getElementById("my_finds");
+    var ftfBrowse = document.getElementById("ftf_list");
+    
+    if (myFindsBrowse.files.length === 0) {
+      alert("You must select a \"My Finds\" GPX file.");
+      return;
+    }
+    
+    var resultHolder = document.getElementById("result_holder");
+    resultHolder.innerHTML = "<br><br><b>Working... Please be patient!</b>";  
+    
+    //Add zip file processing.
+    var myFinds = myFindsBrowse.files[0];
+    
+    const myFindsText = await get_file_text(myFinds);
+    
+    try {
+      var parser = new GpxParser(myFindsText);
+    } catch (e) {
+      alert("Fatal parsing error: " + e + ".");
+      resultHolder.innerHTML = "";
+      return;
+    }
+    
+    if (ftfBrowse.files.length !== 0) {
+      var ftfText = await get_file_text(ftfBrowse.files[0]);
+      parser.setup_ftf_bookmark_list(ftfText);
+    }
+    
+    var results = new ResultAggregator();
+    parser.parse_all_caches(results);
+    
+    var divNode = results.create_html(combineCheckbox.checked, parser.cacheParseErrors);
+    
     resultHolder.innerHTML = "";
-    return;
+    resultHolder.append(divNode);
+  } catch (e) {
+    alert("Unexpected error: " + e + ".");
   }
-  
-  if (ftfBrowse.files.length !== 0) {
-    var ftfText = await get_file_text(ftfBrowse.files[0]);
-    parser.setup_ftf_bookmark_list(ftfText);
-  }
-  
-  var results = new ResultAggregator();
-  parser.parse_all_caches(results);
-  
-  var divNode = results.create_html(combineCheckbox.checked, parser.cacheParseErrors);
-  
-  resultHolder.innerHTML = "";
-  resultHolder.append(divNode);
-
 }
